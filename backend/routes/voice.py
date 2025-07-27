@@ -43,7 +43,7 @@ async def process_voice_command(
             # Find documents to merge
             category = llm_result["parameters"].get("category")
             if category:
-                from ..models.document import DocumentSearch
+                from models.document import DocumentSearch
                 search = DocumentSearch(
                     query="",
                     categories=[category],
