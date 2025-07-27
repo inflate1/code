@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 import uuid
 
-from ..models.document import TaskStatus, DocumentMetadata
-from .llm_service import LLMService
+from models.document import TaskStatus, DocumentMetadata
+from services.llm_service import LLMService
 
 class TaskService:
     """Service for managing asynchronous tasks and background processing"""
