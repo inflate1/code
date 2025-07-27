@@ -340,7 +340,7 @@ const FileClerkAIDashboard = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Badge variant="outline" className="text-xs">
-              AI Status: Active
+              {isMockMode ? 'Mock Mode: Demo Data' : 'AI Status: Active'}
             </Badge>
             <span className="text-xs text-muted-foreground">
               {documents.length} documents indexed
@@ -348,9 +348,9 @@ const FileClerkAIDashboard = () => {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground">
-              Last sync: Just now
+              {isMockMode ? 'Demo Environment' : 'Last sync: Just now'}
             </span>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className={`w-2 h-2 rounded-full ${isMockMode ? 'bg-orange-500' : 'bg-green-500'} animate-pulse`}></div>
           </div>
         </div>
       </div>
