@@ -324,11 +324,11 @@ const FileClerkAIDashboard = () => {
           <div className="lg:col-span-1 space-y-6">
             <AgentToolkit 
               selectedDocument={selectedDocument}
-              agentActions={mockAgentActions}
+              agentActions={agentActions}
               onActionComplete={handleAgentAction}
             />
             <UpcomingTasksPanel 
-              tasks={mockUpcomingTasks}
+              tasks={upcomingTasks}
               onTaskAction={handleTaskAction}
             />
           </div>
