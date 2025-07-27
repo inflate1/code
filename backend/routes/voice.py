@@ -29,7 +29,7 @@ async def process_voice_command(
         
         if llm_result["intent"] == "search_documents":
             # Search for documents
-            from ..models.document import DocumentSearch
+            from models.document import DocumentSearch
             search = DocumentSearch(
                 query=llm_result["parameters"].get("query", ""),
                 categories=[llm_result["parameters"].get("category")] if llm_result["parameters"].get("category") else None,
