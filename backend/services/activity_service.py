@@ -3,6 +3,7 @@ from typing import List, Dict, Any, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from models.document import ActivityLog, MemoryEntry
+from utils.json_encoder import serialize_document, serialize_documents
 
 class ActivityService:
     """Service for managing user activities and memories"""
@@ -29,7 +30,8 @@ class ActivityService:
         )
         
         # Store in database
-        await self.db.activities.insert_one(activity.dict())
+        activity_dict = activity.dict()
+        await self.db.activities.insert_one(activity_dict)
         
         return activity
     
@@ -42,6 +44,7 @@ class ActivityService:
             query["activity_type"] = activity_type
         
         activities = await self.db.activities.find(query).sort("created_at", -1).limit(limit).to_list(limit)
+        activities = serialize_documents(activities)
         
         return [ActivityLog(**activity) for activity in activities]
     
@@ -61,7 +64,8 @@ class ActivityService:
         )
         
         # Store in database
-        await self.db.memories.insert_one(memory.dict())
+        memory_dict = memory.dict()
+        await self.db.memories.insert_one(memory_dict)
         
         return memory
     
@@ -77,6 +81,7 @@ class ActivityService:
             query["starred"] = starred
         
         memories = await self.db.memories.find(query).sort("created_at", -1).limit(limit).to_list(limit)
+        memories = serialize_documents(memories)
         
         return [MemoryEntry(**memory) for memory in memories]
     
@@ -109,6 +114,7 @@ class ActivityService:
         }
         
         memories = await self.db.memories.find(search_query).limit(limit).to_list(limit)
+        memories = serialize_documents(memories)
         
         return [MemoryEntry(**memory) for memory in memories]
     
@@ -117,6 +123,7 @@ class ActivityService:
         memory = await self.db.memories.find_one({"id": memory_id, "user_id": user_id})
         
         if memory:
+            memory = serialize_document(memory)
             return MemoryEntry(**memory)
         
         return None

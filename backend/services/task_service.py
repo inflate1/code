@@ -7,6 +7,7 @@ import uuid
 
 from models.document import TaskStatus, DocumentMetadata
 from services.llm_service import LLMService
+from utils.json_encoder import serialize_document, serialize_documents
 
 class TaskService:
     """Service for managing asynchronous tasks and background processing"""
@@ -26,7 +27,8 @@ class TaskService:
         )
         
         # Store task in database
-        await self.db.tasks.insert_one(task.dict())
+        task_dict = task.dict()
+        await self.db.tasks.insert_one(task_dict)
         
         # Add to active tasks
         self.active_tasks[task.id] = task
@@ -95,6 +97,8 @@ class TaskService:
         if not doc:
             raise ValueError("Document not found")
         
+        doc = serialize_document(doc)
+        
         # Generate summary using LLM service
         summary_result = await self.llm_service.process_document_action(
             "summarize", 
@@ -131,6 +135,8 @@ class TaskService:
         if len(docs) != len(document_ids):
             raise ValueError("Some documents not found")
         
+        docs = serialize_documents(docs)
+        
         # Simulate merge processing
         await asyncio.sleep(2.0)
         
@@ -160,6 +166,8 @@ class TaskService:
         doc = await self.db.documents.find_one({"id": document_id, "user_id": user_id})
         if not doc:
             raise ValueError("Document not found")
+        
+        doc = serialize_document(doc)
         
         # Simulate translation processing
         await asyncio.sleep(3.0)
@@ -191,6 +199,8 @@ class TaskService:
         doc = await self.db.documents.find_one({"id": document_id, "user_id": user_id})
         if not doc:
             raise ValueError("Document not found")
+        
+        doc = serialize_document(doc)
         
         # Simulate analysis processing
         await asyncio.sleep(2.5)
@@ -265,21 +275,24 @@ class TaskService:
     
     async def _update_task_in_db(self, task: TaskStatus):
         """Update task in database"""
+        task_dict = task.dict()
         await self.db.tasks.update_one(
             {"id": task.id},
-            {"$set": task.dict()}
+            {"$set": task_dict}
         )
     
     async def get_task_status(self, task_id: str, user_id: str) -> Optional[TaskStatus]:
         """Get task status"""
         task_data = await self.db.tasks.find_one({"id": task_id, "user_id": user_id})
         if task_data:
+            task_data = serialize_document(task_data)
             return TaskStatus(**task_data)
         return None
     
     async def get_user_tasks(self, user_id: str, limit: int = 50) -> List[TaskStatus]:
         """Get all tasks for a user"""
         tasks = await self.db.tasks.find({"user_id": user_id}).limit(limit).to_list(limit)
+        tasks = serialize_documents(tasks)
         return [TaskStatus(**task) for task in tasks]
     
     async def cancel_task(self, task_id: str, user_id: str) -> bool:
