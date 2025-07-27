@@ -43,9 +43,14 @@ const FileClerkAIDashboard = () => {
   // Auto-create session on mount if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      createSession().catch(() => {
-        setShowLogin(true);
-      });
+      createSession()
+        .then(() => {
+          console.log('Session created successfully');
+        })
+        .catch((error) => {
+          console.error('Session creation failed:', error);
+          setShowLogin(true);
+        });
     }
   }, [authLoading, isAuthenticated, createSession]);
 
