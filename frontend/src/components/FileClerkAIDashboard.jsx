@@ -3,11 +3,17 @@ import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useToast } from '../hooks/use-toast';
+import { useMockMode } from '../hooks/useMockMode';
 import { useAuth } from '../hooks/useAuth';
 import { useDocuments } from '../hooks/useDocuments';
 import { useActivities, useMemories } from '../hooks/useActivities';
 import { useTasks } from '../hooks/useTasks';
 import { useVoice } from '../hooks/useVoice';
+import { useMockAuth } from '../hooks/useMockAuth';
+import { useMockDocuments } from '../hooks/useMockDocuments';
+import { useMockActivities, useMockMemories } from '../hooks/useMockActivities';
+import { useMockTasks } from '../hooks/useMockTasks';
+import { useMockVoice } from '../hooks/useMockVoice';
 import VoiceCommandConsole from './VoiceCommandConsole';
 import SmartFileActivityFeed from './SmartFileActivityFeed';
 import DocumentLibrary from './DocumentLibrary';
@@ -16,12 +22,14 @@ import AgentToolkit from './AgentToolkit';
 import UpcomingTasksPanel from './UpcomingTasksPanel';
 import AnalyticsSnapshot from './AnalyticsSnapshot';
 import LoginModal from './LoginModal';
+import { mockUpcomingTasks, mockAgentActions, mockAnalytics } from '../services/mockService';
 import { 
   Brain, 
   Settings, 
   User, 
   Bell, 
-  Loader2
+  Loader2,
+  TestTube
 } from 'lucide-react';
 
 const FileClerkAIDashboard = () => {
