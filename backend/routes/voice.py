@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from typing import Dict, Any
 import json
 
-from ..services.llm_service import LLMService
-from ..services.document_service import DocumentService
-from ..services.activity_service import ActivityService
-from ..models.document import VoiceCommand, VoiceCommandResult
-from ..dependencies import get_llm_service, get_document_service, get_activity_service, get_current_user
+from services.llm_service import LLMService
+from services.document_service import DocumentService
+from services.activity_service import ActivityService
+from models.document import VoiceCommand, VoiceCommandResult
+from dependencies import get_llm_service, get_document_service, get_activity_service, get_current_user
 
 router = APIRouter(prefix="/voice", tags=["voice"])
 
