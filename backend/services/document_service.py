@@ -12,9 +12,9 @@ import asyncio
 import uuid
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from ..models.document import DocumentMetadata, DocumentSearch, DocumentSearchResult
-from .llm_service import LLMService
-from .embedding_service import EmbeddingService
+from models.document import DocumentMetadata, DocumentSearch, DocumentSearchResult
+from services.llm_service import LLMService
+from services.embedding_service import EmbeddingService
 
 class DocumentService:
     def __init__(self, db: AsyncIOMotorClient, storage_path: str = "/app/backend/storage"):
