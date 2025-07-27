@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../hooks/useAuth';
+import { useDocuments } from '../hooks/useDocuments';
+import { useActivities, useMemories } from '../hooks/useActivities';
+import { useTasks } from '../hooks/useTasks';
+import { useVoice } from '../hooks/useVoice';
 import VoiceCommandConsole from './VoiceCommandConsole';
 import SmartFileActivityFeed from './SmartFileActivityFeed';
 import DocumentLibrary from './DocumentLibrary';
@@ -10,50 +15,60 @@ import MemoryRecallPanel from './MemoryRecallPanel';
 import AgentToolkit from './AgentToolkit';
 import UpcomingTasksPanel from './UpcomingTasksPanel';
 import AnalyticsSnapshot from './AnalyticsSnapshot';
+import LoginModal from './LoginModal';
 import { 
-  mockDocuments, 
-  mockActivities, 
-  mockMemories, 
-  mockAnalytics, 
-  mockUpcomingTasks, 
-  mockAgentActions 
-} from '../data/mockData';
-import { Brain, Settings, User, Bell, Search } from 'lucide-react';
+  Brain, 
+  Settings, 
+  User, 
+  Bell, 
+  Loader2
+} from 'lucide-react';
 
 const FileClerkAIDashboard = () => {
   const [selectedDocument, setSelectedDocument] = useState(null);
-  const [activities, setActivities] = useState(mockActivities);
-  const [memories, setMemories] = useState(mockMemories);
-  const [upcomingTasks, setUpcomingTasks] = useState(mockUpcomingTasks);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const { toast } = useToast();
+  
+  // Auth
+  const { user, isAuthenticated, loading: authLoading, createSession } = useAuth();
+  
+  // Data hooks
+  const { documents, loading: documentsLoading, uploadDocument, searchDocuments, performDocumentAction } = useDocuments();
+  const { activities, loading: activitiesLoading } = useActivities();
+  const { memories, loading: memoriesLoading } = useMemories();
+  const { tasks, loading: tasksLoading } = useTasks();
+  const { processCommand, loading: voiceLoading } = useVoice();
 
-  const handleVoiceCommand = (command) => {
-    // Mock AI processing of voice commands
-    const newActivity = {
-      id: activities.length + 1,
-      action: 'Voice Command Processed',
-      description: `Processed command: "${command}"`,
-      type: 'retrieved',
-      timestamp: 'Just now',
-      actor: 'ai',
-      fileType: 'Command',
-      files: []
-    };
+  // Auto-create session on mount if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      createSession().catch(() => {
+        setShowLogin(true);
+      });
+    }
+  }, [authLoading, isAuthenticated, createSession]);
 
-    setActivities([newActivity, ...activities]);
-
-    // Mock finding relevant documents based on command
-    if (command.toLowerCase().includes('acme')) {
-      const acmeDoc = mockDocuments.find(doc => doc.name.toLowerCase().includes('acme'));
-      if (acmeDoc) {
-        setSelectedDocument(acmeDoc);
+  const handleVoiceCommand = async (command) => {
+    try {
+      const result = await processCommand(command);
+      
+      // Handle different intents
+      if (result.intent === 'search_documents' && result.documents?.length > 0) {
+        setSelectedDocument(result.documents[0]);
+      } else if (result.intent === 'merge_documents' && result.documents?.length > 0) {
+        // Start merge action
+        const documentIds = result.documents.map(doc => doc.id);
+        await performDocumentAction('merge', documentIds);
+      } else if (result.intent === 'summarize_documents' && result.documents?.length > 0) {
+        // Start summarize action
+        const documentIds = result.documents.map(doc => doc.id);
+        await performDocumentAction('summarize', documentIds);
       }
-    } else if (command.toLowerCase().includes('invoice')) {
-      const invoiceDoc = mockDocuments.find(doc => doc.category === 'invoices');
-      if (invoiceDoc) {
-        setSelectedDocument(invoiceDoc);
-      }
+      
+      return result;
+    } catch (error) {
+      console.error('Voice command error:', error);
     }
   };
 
@@ -68,19 +83,12 @@ const FileClerkAIDashboard = () => {
     });
   };
 
-  const handleAgentAction = (action, document) => {
-    const newActivity = {
-      id: activities.length + 1,
-      action: `${action.name} Completed`,
-      description: `${action.name} performed on ${document.name}`,
-      type: action.name.toLowerCase(),
-      timestamp: 'Just now',
-      actor: 'ai',
-      fileType: document.type.toUpperCase(),
-      files: [document.name]
-    };
-
-    setActivities([newActivity, ...activities]);
+  const handleAgentAction = async (action, document) => {
+    try {
+      await performDocumentAction(action.name.toLowerCase(), [document.id]);
+    } catch (error) {
+      console.error('Agent action error:', error);
+    }
   };
 
   const handleTaskAction = (task, action) => {
@@ -88,12 +96,130 @@ const FileClerkAIDashboard = () => {
       title: "Task Action",
       description: `${action.charAt(0).toUpperCase() + action.slice(1)} action taken on: ${task.title}`,
     });
+  };
 
-    // Remove task if it's completed
-    if (action === 'sign' || action === 'resolve' || action === 'review') {
-      setUpcomingTasks(upcomingTasks.filter(t => t.id !== task.id));
+  const handleFileUpload = async (file) => {
+    try {
+      await uploadDocument(file);
+    } catch (error) {
+      console.error('File upload error:', error);
     }
   };
+
+  // Mock analytics data - in real app, this would come from API
+  const mockAnalytics = {
+    totalDocuments: documents.length,
+    documentsProcessed: tasks.filter(t => t.status === 'completed').length,
+    timeSaved: 24.5,
+    commandsUsed: activities.filter(a => a.activity_type === 'voice_command').length,
+    mostUsedCommands: [
+      { command: 'Find contracts', count: 42 },
+      { command: 'Merge invoices', count: 38 },
+      { command: 'Summarize documents', count: 31 },
+      { command: 'Send to team', count: 28 },
+      { command: 'Review compliance', count: 17 }
+    ],
+    weeklyActivity: [
+      { day: 'Mon', actions: 23 },
+      { day: 'Tue', actions: 31 },
+      { day: 'Wed', actions: 18 },
+      { day: 'Thu', actions: 42 },
+      { day: 'Fri', actions: 35 },
+      { day: 'Sat', actions: 8 },
+      { day: 'Sun', actions: 5 }
+    ],
+    fileTypes: [
+      { type: 'PDF', count: 687, percentage: 55 },
+      { type: 'DOCX', count: 312, percentage: 25 },
+      { type: 'XLSX', count: 186, percentage: 15 },
+      { type: 'Others', count: 62, percentage: 5 }
+    ]
+  };
+
+  // Mock upcoming tasks based on documents
+  const mockUpcomingTasks = [
+    {
+      id: 1,
+      title: '3 files awaiting signature',
+      description: 'Vendor contracts need to be signed by end of week',
+      priority: 'high',
+      dueDate: '2024-12-15',
+      files: ['Contract_VendorB.pdf', 'Contract_VendorC.pdf', 'Service_Agreement.pdf'],
+      type: 'signature'
+    },
+    {
+      id: 2,
+      title: '2 conflicting file versions flagged',
+      description: 'Multiple versions of the same document detected',
+      priority: 'medium',
+      dueDate: '2024-12-16',
+      files: ['Policy_v1.pdf', 'Policy_v2.pdf'],
+      type: 'conflict'
+    }
+  ];
+
+  // Mock agent actions
+  const mockAgentActions = [
+    {
+      id: 1,
+      name: 'Summarize',
+      description: 'Create AI-powered summary of document content',
+      icon: 'FileText',
+      category: 'analysis'
+    },
+    {
+      id: 2,
+      name: 'Compare',
+      description: 'Compare two or more documents for differences',
+      icon: 'GitCompare',
+      category: 'analysis'
+    },
+    {
+      id: 3,
+      name: 'Convert',
+      description: 'Convert document to different format',
+      icon: 'RefreshCw',
+      category: 'transform'
+    },
+    {
+      id: 4,
+      name: 'Merge',
+      description: 'Combine multiple documents into one',
+      icon: 'Merge',
+      category: 'transform'
+    },
+    {
+      id: 5,
+      name: 'Redact',
+      description: 'Remove sensitive information from document',
+      icon: 'EyeOff',
+      category: 'security'
+    },
+    {
+      id: 6,
+      name: 'Send',
+      description: 'Share document with team members',
+      icon: 'Send',
+      category: 'communication'
+    }
+  ];
+
+  // Show login modal if not authenticated
+  if (showLogin) {
+    return <LoginModal onClose={() => setShowLogin(false)} />;
+  }
+
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading FileClerkAI...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,10 +263,14 @@ const FileClerkAIDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Column - Voice Command and Memory */}
           <div className="lg:col-span-1 space-y-6">
-            <VoiceCommandConsole onCommand={handleVoiceCommand} />
+            <VoiceCommandConsole 
+              onCommand={handleVoiceCommand} 
+              loading={voiceLoading}
+            />
             <MemoryRecallPanel 
               memories={memories} 
-              onRecallMemory={handleMemoryRecall} 
+              onRecallMemory={handleMemoryRecall}
+              loading={memoriesLoading}
             />
             {showAnalytics && (
               <AnalyticsSnapshot analytics={mockAnalytics} />
@@ -150,10 +280,15 @@ const FileClerkAIDashboard = () => {
           {/* Center Column - Document Library and Activity Feed */}
           <div className="lg:col-span-2 space-y-6">
             <DocumentLibrary 
-              documents={mockDocuments} 
-              onDocumentSelect={handleDocumentSelect} 
+              documents={documents} 
+              onDocumentSelect={handleDocumentSelect}
+              onFileUpload={handleFileUpload}
+              loading={documentsLoading}
             />
-            <SmartFileActivityFeed activities={activities} />
+            <SmartFileActivityFeed 
+              activities={activities}
+              loading={activitiesLoading}
+            />
           </div>
 
           {/* Right Column - Agent Toolkit and Tasks */}
@@ -164,7 +299,7 @@ const FileClerkAIDashboard = () => {
               onActionComplete={handleAgentAction}
             />
             <UpcomingTasksPanel 
-              tasks={upcomingTasks}
+              tasks={mockUpcomingTasks}
               onTaskAction={handleTaskAction}
             />
           </div>
@@ -179,7 +314,7 @@ const FileClerkAIDashboard = () => {
               AI Status: Active
             </Badge>
             <span className="text-xs text-muted-foreground">
-              {mockDocuments.length} documents indexed
+              {documents.length} documents indexed
             </span>
           </div>
           <div className="flex items-center gap-4">
