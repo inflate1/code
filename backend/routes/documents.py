@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Q
 from typing import List, Optional
 import json
 
-from ..services.document_service import DocumentService
-from ..services.task_service import TaskService
-from ..services.activity_service import ActivityService
-from ..services.auth_service import AuthService
-from ..models.document import DocumentMetadata, DocumentSearch, DocumentAction, DocumentSearchResult
-from ..dependencies import get_document_service, get_task_service, get_activity_service, get_current_user
+from services.document_service import DocumentService
+from services.task_service import TaskService
+from services.activity_service import ActivityService
+from services.auth_service import AuthService
+from models.document import DocumentMetadata, DocumentSearch, DocumentAction, DocumentSearchResult
+from dependencies import get_document_service, get_task_service, get_activity_service, get_current_user
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
