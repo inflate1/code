@@ -46,6 +46,12 @@ api.interceptors.response.use(
 export const authAPI = {
   createSession: async () => {
     const response = await api.post('/auth/session');
+    const { token } = response.data;
+    
+    // Store token
+    authToken = token;
+    localStorage.setItem('fileclerk_token', token);
+    
     return response.data;
   },
 
