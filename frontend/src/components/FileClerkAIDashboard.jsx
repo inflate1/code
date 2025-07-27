@@ -302,7 +302,7 @@ const FileClerkAIDashboard = () => {
               loading={memoriesLoading}
             />
             {showAnalytics && (
-              <AnalyticsSnapshot analytics={mockAnalytics} />
+              <AnalyticsSnapshot analytics={analyticsData} />
             )}
           </div>
 
