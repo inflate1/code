@@ -18,9 +18,12 @@ def serialize_document(document: dict) -> dict:
     if not document:
         return document
     
-    # Convert _id to id and make it a string
-    if '_id' in document:
+    # Only convert _id to id if there's no existing id field (preserve UUIDs)
+    if '_id' in document and 'id' not in document:
         document['id'] = str(document['_id'])
+    
+    # Remove _id field to avoid confusion
+    if '_id' in document:
         del document['_id']
     
     # Convert any other ObjectId fields
