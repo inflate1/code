@@ -5,12 +5,12 @@ import os
 from pathlib import Path
 
 # Import services
-from .services.document_service import DocumentService
-from .services.llm_service import LLMService
-from .services.embedding_service import EmbeddingService
-from .services.task_service import TaskService
-from .services.auth_service import AuthService
-from .services.activity_service import ActivityService
+from services.document_service import DocumentService
+from services.llm_service import LLMService
+from services.embedding_service import EmbeddingService
+from services.task_service import TaskService
+from services.auth_service import AuthService
+from services.activity_service import ActivityService
 
 # Global dependencies
 security = HTTPBearer()
