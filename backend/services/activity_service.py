@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from ..models.document import ActivityLog, MemoryEntry
+from models.document import ActivityLog, MemoryEntry
 
 class ActivityService:
     """Service for managing user activities and memories"""
