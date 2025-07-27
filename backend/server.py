@@ -8,10 +8,10 @@ from pathlib import Path
 import asyncio
 
 # Import routes
-from .routes import documents, voice, tasks, activities, auth
+from routes import documents, voice, tasks, activities, auth
 
 # Import dependencies
-from .dependencies import cleanup_services
+from dependencies import cleanup_services
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
