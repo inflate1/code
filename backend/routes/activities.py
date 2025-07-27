@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
 
-from ..services.activity_service import ActivityService
-from ..models.document import ActivityLog, MemoryEntry
-from ..dependencies import get_activity_service, get_current_user
+from services.activity_service import ActivityService
+from models.document import ActivityLog, MemoryEntry
+from dependencies import get_activity_service, get_current_user
 
 router = APIRouter(prefix="/activities", tags=["activities"])
 
