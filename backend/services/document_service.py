@@ -15,6 +15,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from models.document import DocumentMetadata, DocumentSearch, DocumentSearchResult
 from services.llm_service import LLMService
 from services.embedding_service import EmbeddingService
+from utils.json_encoder import serialize_document, serialize_documents
 
 class DocumentService:
     def __init__(self, db: AsyncIOMotorClient, storage_path: str = "/app/backend/storage"):
@@ -75,7 +76,8 @@ class DocumentService:
             )
             
             # Store in database
-            await self.db.documents.insert_one(document.dict())
+            document_dict = document.dict()
+            await self.db.documents.insert_one(document_dict)
             
             return document
             
@@ -219,6 +221,9 @@ class DocumentService:
             
             results = []
             for doc in documents:
+                # Serialize document
+                doc = serialize_document(doc)
+                
                 # Calculate mock relevance score
                 relevance_score = await self._calculate_relevance_score(doc, search.query)
                 
@@ -300,6 +305,7 @@ class DocumentService:
         try:
             doc = await self.db.documents.find_one({"id": doc_id, "user_id": user_id})
             if doc:
+                doc = serialize_document(doc)
                 return DocumentMetadata(**doc)
             return None
         except Exception as e:
@@ -310,6 +316,7 @@ class DocumentService:
         """Get all documents for a user"""
         try:
             documents = await self.db.documents.find({"user_id": user_id}).limit(limit).to_list(limit)
+            documents = serialize_documents(documents)
             return [DocumentMetadata(**doc) for doc in documents]
         except Exception as e:
             print(f"Error getting user documents: {e}")

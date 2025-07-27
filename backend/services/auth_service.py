@@ -6,6 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import uuid
 
 from models.document import UserSession
+from utils.json_encoder import serialize_document
 
 class AuthService:
     """Simple authentication service - enhance with proper auth later"""
@@ -24,7 +25,8 @@ class AuthService:
         )
         
         # Store session in database
-        await self.db.sessions.insert_one(session.dict())
+        session_dict = session.dict()
+        await self.db.sessions.insert_one(session_dict)
         
         return session
     
@@ -32,6 +34,8 @@ class AuthService:
         """Get session by ID"""
         session_data = await self.db.sessions.find_one({"id": session_id})
         if session_data:
+            # Serialize the document
+            session_data = serialize_document(session_data)
             session = UserSession(**session_data)
             
             # Check if session is expired
@@ -121,7 +125,8 @@ class AuthService:
                 {"$set": {"last_login": datetime.utcnow()}}
             )
         
-        return user
+        # Serialize the user document
+        return serialize_document(user)
     
     async def update_user_settings(self, user_id: str, settings: Dict[str, Any]) -> bool:
         """Update user settings"""
@@ -135,7 +140,10 @@ class AuthService:
     async def get_user_settings(self, user_id: str) -> Dict[str, Any]:
         """Get user settings"""
         user = await self.db.users.find_one({"id": user_id})
-        return user.get("settings", {}) if user else {}
+        if user:
+            user = serialize_document(user)
+            return user.get("settings", {})
+        return {}
     
     def hash_password(self, password: str) -> str:
         """Hash password (simple implementation)"""
