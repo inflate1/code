@@ -5,9 +5,9 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
-import { Brain, Search, Bookmark, History, Repeat, Star, Clock } from 'lucide-react';
+import { Brain, Search, Bookmark, History, Repeat, Star, Clock, Loader2 } from 'lucide-react';
 
-const MemoryRecallPanel = ({ memories = [], onRecallMemory }) => {
+const MemoryRecallPanel = ({ memories = [], onRecallMemory, loading = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('recent');
 
@@ -37,6 +37,21 @@ const MemoryRecallPanel = ({ memories = [], onRecallMemory }) => {
     }
   };
 
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+      return diffInMinutes <= 1 ? 'Just now' : `${diffInMinutes} minutes ago`;
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)} hours ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
   const tabs = [
     { id: 'recent', label: 'Recent', icon: <Clock className="w-4 h-4" /> },
     { id: 'bookmarks', label: 'Bookmarks', icon: <Bookmark className="w-4 h-4" /> },
@@ -46,8 +61,8 @@ const MemoryRecallPanel = ({ memories = [], onRecallMemory }) => {
 
   const getTabMemories = (tabId) => {
     switch (tabId) {
-      case 'bookmarks': return filteredMemories.filter(m => m.type === 'bookmark');
-      case 'routines': return filteredMemories.filter(m => m.type === 'routine');
+      case 'bookmarks': return filteredMemories.filter(m => m.memory_type === 'bookmark');
+      case 'routines': return filteredMemories.filter(m => m.memory_type === 'routine');
       case 'starred': return filteredMemories.filter(m => m.starred);
       default: return filteredMemories;
     }
@@ -57,8 +72,8 @@ const MemoryRecallPanel = ({ memories = [], onRecallMemory }) => {
     <div className="space-y-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => onRecallMemory(memory)}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className={`p-1 rounded ${getMemoryColor(memory.type)}`}>
-            {getMemoryIcon(memory.type)}
+          <div className={`p-1 rounded ${getMemoryColor(memory.memory_type)}`}>
+            {getMemoryIcon(memory.memory_type)}
           </div>
           <h3 className="font-medium text-sm">{memory.title}</h3>
         </div>
@@ -78,7 +93,7 @@ const MemoryRecallPanel = ({ memories = [], onRecallMemory }) => {
             </Badge>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">{memory.timestamp}</span>
+        <span className="text-xs text-muted-foreground">{formatTimestamp(memory.created_at)}</span>
       </div>
     </div>
   );
@@ -117,20 +132,27 @@ const MemoryRecallPanel = ({ memories = [], onRecallMemory }) => {
         </div>
         
         <ScrollArea className="h-[400px] w-full">
-          <div className="space-y-2">
-            {getTabMemories(selectedTab).map((memory, index) => (
-              <div key={index}>
-                <MemoryItem memory={memory} />
-                {index < getTabMemories(selectedTab).length - 1 && <Separator className="my-2" />}
-              </div>
-            ))}
-            {getTabMemories(selectedTab).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Brain className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No memories found</p>
-              </div>
-            )}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin mr-2" />
+              <span className="text-muted-foreground">Loading memories...</span>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {getTabMemories(selectedTab).map((memory, index) => (
+                <div key={memory.id || index}>
+                  <MemoryItem memory={memory} />
+                  {index < getTabMemories(selectedTab).length - 1 && <Separator className="my-2" />}
+                </div>
+              ))}
+              {!loading && getTabMemories(selectedTab).length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Brain className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No memories found</p>
+                </div>
+              )}
+            </div>
+          )}
         </ScrollArea>
       </CardContent>
     </Card>
