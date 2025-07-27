@@ -126,8 +126,8 @@ const FileClerkAIDashboard = () => {
     }
   };
 
-  // Mock analytics data - in real app, this would come from API
-  const mockAnalytics = {
+  // Mock analytics data - use real data when available
+  const analyticsData = isMockMode ? mockAnalytics : {
     totalDocuments: documents.length,
     documentsProcessed: tasks.filter(t => t.status === 'completed').length,
     timeSaved: 24.5,
@@ -156,8 +156,8 @@ const FileClerkAIDashboard = () => {
     ]
   };
 
-  // Mock upcoming tasks based on documents
-  const mockUpcomingTasks = [
+  // Mock upcoming tasks and agent actions
+  const upcomingTasks = isMockMode ? mockUpcomingTasks : [
     {
       id: 1,
       title: '3 files awaiting signature',
@@ -178,8 +178,7 @@ const FileClerkAIDashboard = () => {
     }
   ];
 
-  // Mock agent actions
-  const mockAgentActions = [
+  const agentActions = isMockMode ? mockAgentActions : [
     {
       id: 1,
       name: 'Summarize',
