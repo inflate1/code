@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any
 from motor.motor_asyncio import AsyncIOMotorClient
 import uuid
 
-from ..models.document import UserSession
+from models.document import UserSession
 
 class AuthService:
     """Simple authentication service - enhance with proper auth later"""
