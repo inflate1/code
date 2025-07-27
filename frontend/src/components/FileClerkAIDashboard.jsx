@@ -37,16 +37,23 @@ const FileClerkAIDashboard = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const { toast } = useToast();
+  const { isMockMode, toggleMockMode } = useMockMode();
   
-  // Auth
-  const { user, isAuthenticated, loading: authLoading, createSession } = useAuth();
+  // Choose between real and mock hooks based on mode
+  const authHook = isMockMode ? useMockAuth() : useAuth();
+  const documentsHook = isMockMode ? useMockDocuments() : useDocuments();
+  const activitiesHook = isMockMode ? useMockActivities() : useActivities();
+  const memoriesHook = isMockMode ? useMockMemories() : useMemories();
+  const tasksHook = isMockMode ? useMockTasks() : useTasks();
+  const voiceHook = isMockMode ? useMockVoice() : useVoice();
   
-  // Data hooks
-  const { documents, loading: documentsLoading, uploadDocument, searchDocuments, performDocumentAction } = useDocuments();
-  const { activities, loading: activitiesLoading } = useActivities();
-  const { memories, loading: memoriesLoading } = useMemories();
-  const { tasks, loading: tasksLoading } = useTasks();
-  const { processCommand, loading: voiceLoading } = useVoice();
+  // Extract values from hooks
+  const { user, isAuthenticated, loading: authLoading, createSession } = authHook;
+  const { documents, loading: documentsLoading, uploadDocument, searchDocuments, performDocumentAction } = documentsHook;
+  const { activities, loading: activitiesLoading } = activitiesHook;
+  const { memories, loading: memoriesLoading } = memoriesHook;
+  const { tasks, loading: tasksLoading } = tasksHook;
+  const { processCommand, loading: voiceLoading } = voiceHook;
 
   // Auto-create session on mount if not authenticated
   useEffect(() => {
