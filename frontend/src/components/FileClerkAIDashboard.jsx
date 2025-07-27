@@ -263,6 +263,16 @@ const FileClerkAIDashboard = () => {
               >
                 Analytics
               </Button>
+              {/* Mock Mode Toggle */}
+              <Button
+                variant={isMockMode ? "default" : "outline"}
+                size="sm"
+                onClick={toggleMockMode}
+                className="flex items-center gap-2"
+              >
+                <TestTube className="w-4 h-4" />
+                {isMockMode ? 'Mock Mode' : 'Live Mode'}
+              </Button>
               <Button variant="ghost" size="sm">
                 <Bell className="w-4 h-4" />
               </Button>
