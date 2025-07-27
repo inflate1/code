@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
 
-from ..services.task_service import TaskService
-from ..models.document import TaskStatus
-from ..dependencies import get_task_service, get_current_user
+from services.task_service import TaskService
+from models.document import TaskStatus
+from dependencies import get_task_service, get_current_user
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
