@@ -5,10 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Mic, MicOff, Send, Loader2 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
-const VoiceCommandConsole = ({ onCommand }) => {
+const VoiceCommandConsole = ({ onCommand, loading = false }) => {
   const [isListening, setIsListening] = useState(false);
   const [command, setCommand] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
   const { toast } = useToast();
   const recognitionRef = useRef(null);
@@ -70,22 +69,15 @@ const VoiceCommandConsole = ({ onCommand }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!command.trim()) return;
+    if (!command.trim() || loading) return;
 
-    setIsProcessing(true);
-    
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    onCommand(command.trim());
-    setCommand('');
-    setTranscript('');
-    setIsProcessing(false);
-    
-    toast({
-      title: "Command Processed",
-      description: "Your request is being handled by FileClerkAI",
-    });
+    try {
+      await onCommand(command.trim());
+      setCommand('');
+      setTranscript('');
+    } catch (error) {
+      console.error('Voice command error:', error);
+    }
   };
 
   const exampleCommands = [
@@ -111,6 +103,7 @@ const VoiceCommandConsole = ({ onCommand }) => {
               onChange={(e) => setCommand(e.target.value)}
               placeholder="Type your command or use voice input..."
               className="pr-24"
+              disabled={loading}
             />
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
               <Button
@@ -118,16 +111,16 @@ const VoiceCommandConsole = ({ onCommand }) => {
                 variant={isListening ? "destructive" : "outline"}
                 size="sm"
                 onClick={isListening ? stopListening : startListening}
-                disabled={isProcessing}
+                disabled={loading}
               >
                 {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </Button>
               <Button
                 type="submit"
                 size="sm"
-                disabled={!command.trim() || isProcessing}
+                disabled={!command.trim() || loading}
               >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
             </div>
           </div>
@@ -147,6 +140,15 @@ const VoiceCommandConsole = ({ onCommand }) => {
           </div>
         )}
 
+        {loading && (
+          <div className="text-sm text-muted-foreground bg-yellow-50 p-3 rounded-md">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Processing your command...
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">Example Commands:</h4>
           <div className="grid grid-cols-1 gap-2">
@@ -157,6 +159,7 @@ const VoiceCommandConsole = ({ onCommand }) => {
                 size="sm"
                 className="justify-start text-left h-auto p-3 text-xs"
                 onClick={() => setCommand(example)}
+                disabled={loading}
               >
                 "{example}"
               </Button>
