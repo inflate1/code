@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Dict, Any, Optional
 
-from ..services.auth_service import AuthService
-from ..dependencies import get_auth_service
+from services.auth_service import AuthService
+from dependencies import get_auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 security = HTTPBearer()
